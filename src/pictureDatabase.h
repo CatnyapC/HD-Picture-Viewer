@@ -139,11 +139,11 @@ public:
 
 		//sets up loading bar finish line
 		if (gfx.is16bppMode()) {
-			gfx16_SetColor(GFX16_WHITE);
+			gfx16_SetColor(GFX16_BLACK);
 			gfx16_VertLine_NoClip(260, 153, 7);
 		}
 		else {
-			gfx_SetColor(PALETTE_WHITE);
+			gfx_SetColor(PALETTE_BLACK);
 			gfx_VertLine_NoClip(260, 153, 7);
 		}
 

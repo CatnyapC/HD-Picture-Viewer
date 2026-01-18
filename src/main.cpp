@@ -121,12 +121,12 @@ void drawHomeScreen()
 	/* main menu */
 	if (gfx.is16bppMode()) {
 		dbg_sprintf(dbgout, "\ndrawMenu_16bpp");
-		gfx16_FillScreen(GFX16_BLACK);
+		gfx16_FillScreen(GFX16_WHITE);
 		drawMenu_16bpp(selectedPicIndex);
 	}
 	else {
 		dbg_sprintf(dbgout, "\ndrawMenu_8bpp");
-		gfx_FillScreen(PALETTE_BLACK);
+		gfx_FillScreen(PALETTE_WHITE);
 		drawMenu_8bpp(selectedPicIndex);
 	}
 
@@ -156,8 +156,8 @@ void drawHomeScreen()
 				gfx16_PrintCenteredX("Press enter to continue.", 215);
 			}
 			else {
-				gfx_SetTextBGColor(PALETTE_BLACK);
-				gfx_SetTextFGColor(PALETTE_WHITE);
+				gfx_SetTextBGColor(PALETTE_WHITE);
+				gfx_SetTextFGColor(PALETTE_BLACK);
 				PrintCenteredX("Render Interrupted.", 10);
 				PrintCenteredX("Press enter to continue.", 215);
 			}
@@ -193,9 +193,9 @@ void drawHomeScreen()
 				redrawPic = true;
 				errorID = kb_KeyClear; //1600
 				if (gfx.is16bppMode())
-					gfx16_FillScreen(GFX16_BLACK);
+					gfx16_FillScreen(GFX16_WHITE);
 				else
-					gfx_FillScreen(PALETTE_BLACK);
+					gfx_FillScreen(PALETTE_WHITE);
 			}
 			else {
 				quitProgram = true;
@@ -221,11 +221,11 @@ void drawHomeScreen()
 
 			if (prev16bpp) {
 				HDpicGFX::use16bpp();
-				gfx16_FillScreen(GFX16_BLACK);
+				gfx16_FillScreen(GFX16_WHITE);
 			}
 			else {
 				HDpicGFX::use8bpp();
-				gfx_FillScreen(PALETTE_BLACK);
+				gfx_FillScreen(PALETTE_WHITE);
 			}
 
 			resetPic = true;
@@ -238,9 +238,9 @@ void drawHomeScreen()
 		if (keyHandler.wasKeyPressed(kb_KeyDel)) {
 			HDpicGFX::use16bpp();
 			//we don't want the user seeing the horrors of their image with the wrong palette
-			gfx16_FillScreen(GFX16_BLACK);
+			gfx16_FillScreen(GFX16_WHITE);
 			gfx16_SetTextFGColor(GFX16_TEXT);
-			gfx16_SetTextBGColor(GFX16_BLACK);
+			gfx16_SetTextBGColor(GFX16_WHITE);
 			gfx16_PrintCenteredX("Deleting Picture...", 120);
 
 			//delete the palette and all subimages
@@ -256,7 +256,7 @@ void drawHomeScreen()
 
 			//set color for splash screen
 			gfx16_SetTextFGColor(GFX16_TEXT);
-			gfx16_SetTextBGColor(GFX16_BLACK);
+			gfx16_SetTextBGColor(GFX16_WHITE);
 
 			//check if all images were deleted. If so, just quit.
 			if (picDB.size() == 0) {
@@ -271,7 +271,7 @@ void drawHomeScreen()
 			}
 
 			//prepare for redrawing everything
-			gfx16_FillScreen(GFX16_BLACK);
+			gfx16_FillScreen(GFX16_WHITE);
 
 			resetPic = true;
 			redrawPic = true;
@@ -416,11 +416,11 @@ void drawHomeScreen()
 			HDpicGFX::autoSelectLibrary(picDB.getPicture(selectedPicIndex).BPP);
 			if (!fullScreenImage) {
 				if (gfx.is16bppMode()) {
-					gfx16_FillScreen(GFX16_BLACK);
+					gfx16_FillScreen(GFX16_WHITE);
 					drawMenu_16bpp(selectedPicIndex);
 				}
 				else {
-					gfx_FillScreen(PALETTE_BLACK);
+					gfx_FillScreen(PALETTE_WHITE);
 					drawMenu_8bpp(selectedPicIndex);
 				}
 			}
@@ -479,7 +479,7 @@ uint8_t drawGIF(uint24_t picName, bool fullScreenPic)
 
 	// If displaying thumbnail, cover up the last image
 	if (!fullScreenPic) {
-		gfx_SetColor(PALETTE_BLACK);
+		gfx_SetColor(PALETTE_WHITE);
 		gfx_FillRectangle_NoClip(150, 0, 170, 240);
 	}
 
@@ -658,11 +658,11 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 	//Check if we need to pan the image. If so, shift the contents of the screen over so we don't need to redraw as many subimages.
 	if (shiftX != 0 || shiftY != 0) {
 		if (HDpicGFX::is16bppMode()) {
-			gfx16_SetColor(GFX16_BLACK);
+			gfx16_SetColor(GFX16_WHITE);
 		}
 		else {
 			//only 8bpp can double buffer
-			gfx_SetColor(PALETTE_BLACK);
+			gfx_SetColor(PALETTE_WHITE);
 			gfx_SetDrawBuffer();
 		}
 
@@ -703,9 +703,9 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 	else if (fullScreenPic) {
 		//If there's no panning, then we need to re-draw the entire image. 
 		if (HDpicGFX::is16bppMode())
-			gfx16_FillScreen(GFX16_BLACK);
+			gfx16_FillScreen(GFX16_WHITE);
 		else
-			gfx_FillScreen(PALETTE_BLACK);
+			gfx_FillScreen(PALETTE_WHITE);
 
 	}
 
@@ -765,11 +765,11 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 	// If displaying thumbnail, cover up the last image
 	if (!fullScreenPic) {
 		if (gfx.is16bppMode()) {
-			gfx16_SetColor(GFX16_BLACK);
+			gfx16_SetColor(GFX16_WHITE);
 			gfx16_FillRectangle_NoClip(150, 0, 170, 240);
 		}
 		else {
-			gfx_SetColor(PALETTE_BLACK);
+			gfx_SetColor(PALETTE_WHITE);
 			gfx_FillRectangle_NoClip(150, 0, 170, 240);
 		}
 	}

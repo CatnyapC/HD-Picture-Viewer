@@ -32,12 +32,12 @@ private:
 
 		if (gfx.is16bppMode())
 		{
-			gfx16_SetColor(GFX16_WHITE);
+			gfx16_SetColor(GFX16_BLACK);
 			gfx16_FillRectangle_NoClip(40, 153, fmin(progress, maxPixelWidth), 7);
 		}
 		else
 		{
-			gfx_SetColor(PALETTE_WHITE);
+			gfx_SetColor(PALETTE_BLACK);
 			gfx_FillRectangle_NoClip(40, 153, fmin(progress, maxPixelWidth), 7);
 		}
 

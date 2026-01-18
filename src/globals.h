@@ -52,15 +52,14 @@
 *  https://roccoloxprograms.github.io/XlibcColorPicker/ */
 
 // background levels, higher number is brighter.
-#define GFX16_BG_0 0x0
+#define GFX16_BG_0 GFX16_WHITE
 #define GFX16_BG_1 0x18e3
 #define GFX16_BG_BLUE 0x53fe // splash screen
 
-// Text intended for use on dark backgrounds
-#define GFX16_TEXT 0xad55        // default text, grey
-#define GFX16_TEXT_TITLE 0xef7d  // slightly lighter than default text
+// Text intended for use on light backgrounds
+#define GFX16_TEXT GFX16_BLACK        // default text
+#define GFX16_TEXT_TITLE GFX16_BLACK  // slightly stronger heading
 #define GFX16_TEXT_SUCCESS 0x4ec8// for use as success message or inconsequential hint
 #define GFX16_TEXT_ERROR 0xdac6  // for use as error message or danger hint
 #define GFX16_TEXT_BLUE 0xae1f   // for use on links and version numbers
 #define GFX16_TEXT_PURPLE 0xa49b
-

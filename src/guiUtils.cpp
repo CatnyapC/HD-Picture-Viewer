@@ -9,8 +9,8 @@
 void drawWatermark_8bpp()
 {
 	gfx_SetTextScale(1, 1);
-	gfx_SetTextFGColor(PALETTE_WHITE);
-	gfx_SetTextBGColor(PALETTE_BLACK);
+	gfx_SetTextFGColor(PALETTE_BLACK);
+	gfx_SetTextBGColor(PALETTE_WHITE);
 	gfx_PrintStringXY("HD Picture Viewer", 2, 2);
 	gfx_PrintStringXY("[mode] = help", 2, 232);
 }
@@ -20,7 +20,7 @@ void drawWatermark_16bpp()
 {
 	gfx16_SetTextScale(1, 1);
 	gfx16_SetTextFGColor(GFX16_TEXT_TITLE);
-	gfx16_SetTextBGColor(GFX16_BLACK);
+	gfx16_SetTextBGColor(GFX16_WHITE);
 	gfx16_PutStringXY("HD Picture Viewer", 2, 2);
 	gfx16_PutStringXY("[mode] = help", 2, 232);
 }
@@ -65,13 +65,13 @@ void PrintHelpText(const char *button, const char *help, uint24_t yPos)
 // 16bpp creates a simple splash screen when program starts
 void drawSplashScreen()
 {
-	gfx16_FillScreen(GFX16_BLACK);
+	gfx16_FillScreen(GFX16_WHITE);
 	gfx16_SetColor(GFX16_BG_BLUE);
 	gfx16_FillRectangle_NoClip(40, 80, 240, 80); //size: 2/3 screen width, 1/3 screen height
 
 	/* Print title screen */
 	gfx16_SetTextBGColor(GFX16_BG_BLUE);
-	gfx16_SetTextFGColor(GFX16_TEXT_TITLE);
+	gfx16_SetTextFGColor(GFX16_WHITE);
 	gfx16_PrintCenteredX("HD Picture Viewer", 116);
 	gfx16_PrintCenteredX(VERSION, 140);
 }
@@ -124,7 +124,7 @@ void drawHelp()
 // 16bpp Draw screen that informs user that no picture were detected.
 void drawNoImagesFound()
 {
-	gfx16_SetTextBGColor(GFX16_BLACK);
+	gfx16_SetTextBGColor(GFX16_WHITE);
 	gfx16_SetTextFGColor(GFX16_TEXT_ERROR);
 	gfx16_PrintCenteredX("No Pictures Detected!", 15);
 	gfx16_SetTextFGColor(GFX16_TEXT);
@@ -143,7 +143,7 @@ void drawNoImagesFound()
 	gfx16_SetTextFGColor(GFX16_TEXT_ERROR);
 	gfx16_PrintCenteredX("Press any key to quit.", 230);
 
-	gfx16_SetColor(GFX16_WHITE);
+	gfx16_SetColor(GFX16_BLACK);
 	gfx16_HorizLine_NoClip(0, 60, LCD_WIDTH);
 	gfx16_HorizLine_NoClip(0, 177, LCD_WIDTH);
 }
@@ -151,18 +151,18 @@ void drawNoImagesFound()
 /* This UI keeps the user selection in the middle of the screen. */
 void drawMenu_16bpp(uint24_t selectedName)
 {
-	gfx16_SetColor(GFX16_WHITE);
+	gfx16_SetColor(GFX16_BLACK);
 	gfx16_VertLine(140, 20, 200);
 
 	uint24_t yPxlPos{ 0 };
 
 	//clears old text and sets prev for new text
 	gfx16_SetTextScale(2, 2);
-	gfx16_SetColor(GFX16_BLACK);
-	gfx16_FillRectangle_NoClip(0, 0, 140, 240);
 	gfx16_SetColor(GFX16_WHITE);
+	gfx16_FillRectangle_NoClip(0, 0, 140, 240);
+	gfx16_SetColor(GFX16_BLACK);
 	gfx16_SetTextFGColor(GFX16_TEXT);
-	gfx16_SetTextBGColor(GFX16_BLACK);
+	gfx16_SetTextBGColor(GFX16_WHITE);
 
 	//re-draws UI lines
 	gfx16_HorizLine_NoClip(0, 120, 6);
@@ -207,18 +207,18 @@ void drawMenu_16bpp(uint24_t selectedName)
 /* This UI keeps the user selection in the middle of the screen. */
 void drawMenu_8bpp(uint24_t selectedName)
 {
-	gfx_SetColor(PALETTE_WHITE);
+	gfx_SetColor(PALETTE_BLACK);
 	gfx_VertLine(140, 20, 200);
 
 	uint24_t yPxlPos{ 0 };
 
 	//clears old text and sets prev for new text
 	gfx_SetTextScale(2, 2);
-	gfx_SetColor(PALETTE_BLACK);
-	gfx_FillRectangle_NoClip(0, 0, 140, 240);
 	gfx_SetColor(PALETTE_WHITE);
-	gfx_SetTextFGColor(PALETTE_WHITE);
-	gfx_SetTextBGColor(PALETTE_BLACK);
+	gfx_FillRectangle_NoClip(0, 0, 140, 240);
+	gfx_SetColor(PALETTE_BLACK);
+	gfx_SetTextFGColor(PALETTE_BLACK);
+	gfx_SetTextBGColor(PALETTE_WHITE);
 
 	//re-draws UI lines
 	gfx_HorizLine_NoClip(0, 120, 6);
