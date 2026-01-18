@@ -21,6 +21,8 @@ struct imageData
 	int24_t yOffset{ 0 };
 	int24_t horizSubImages{ 0 };
 	int24_t vertSubImages{ 0 };
+	uint24_t pixelWidth{ 0 };
+	uint24_t pixelHeight{ 0 };
 	uint24_t numGIFFrames{ 0 };
 
 	//When we find a subimage, store the pointer to it here.

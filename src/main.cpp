@@ -798,6 +798,11 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 		return 1;
 	}
 
+	const uint24_t imagePixelWidth{ curPicture.pixelWidth > 0 ? curPicture.pixelWidth :
+		static_cast<uint24_t>(curPicture.horizSubImages) * SUBIMAGE_DIMENSIONS };
+	const uint24_t imagePixelHeight{ curPicture.pixelHeight > 0 ? curPicture.pixelHeight :
+		static_cast<uint24_t>(curPicture.vertSubImages) * SUBIMAGE_DIMENSIONS };
+
 	/* Loop through all subimages to create full image */
 	bool bFirstRun{ true };
 	//If there's no cache yet, don't bother even checking it.
@@ -874,19 +879,58 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 
 		dbg_sprintf(dbgout, "\n outputImg W x H: %d x %d ptr: %p", outputImg->width, outputImg->height, outputImg);
 
+		uint24_t srcWidth{ (*srcImg)->width };
+		uint24_t srcHeight{ (*srcImg)->height };
+		if (srcWidth == 0 || srcWidth > SUBIMAGE_DIMENSIONS)
+			srcWidth = SUBIMAGE_DIMENSIONS;
+		if (srcHeight == 0 || srcHeight > SUBIMAGE_DIMENSIONS)
+			srcHeight = SUBIMAGE_DIMENSIONS;
+		(*srcImg)->width = srcWidth;
+		(*srcImg)->height = srcHeight;
+
+		const uint24_t scaledWidth{ static_cast<uint24_t>((static_cast<uint24_t>(srcWidth) * scaleNumerator) / scaleDenominator) };
+		const uint24_t scaledHeight{ static_cast<uint24_t>((static_cast<uint24_t>(srcHeight) * scaleNumerator) / scaleDenominator) };
+		outputImg->width = scaledWidth > 0 ? scaledWidth : 1;
+		outputImg->height = scaledHeight > 0 ? scaledHeight : 1;
+
+		const uint24_t remainingWidth{ imagePixelWidth > (static_cast<uint24_t>(xSubimgID) * SUBIMAGE_DIMENSIONS) ?
+			imagePixelWidth - (static_cast<uint24_t>(xSubimgID) * SUBIMAGE_DIMENSIONS) : 0 };
+		const uint24_t remainingHeight{ imagePixelHeight > (static_cast<uint24_t>(ySubimgID) * SUBIMAGE_DIMENSIONS) ?
+			imagePixelHeight - (static_cast<uint24_t>(ySubimgID) * SUBIMAGE_DIMENSIONS) : 0 };
+		const uint24_t edgeWidth{ remainingWidth < SUBIMAGE_DIMENSIONS ? remainingWidth : SUBIMAGE_DIMENSIONS };
+		const uint24_t edgeHeight{ remainingHeight < SUBIMAGE_DIMENSIONS ? remainingHeight : SUBIMAGE_DIMENSIONS };
+		if (edgeWidth == 0 || edgeHeight == 0) {
+			ti_Close(subimgSlot);
+			continue;
+		}
+
+		uint24_t clipWidth{ static_cast<uint24_t>((edgeWidth * scaleNumerator) / scaleDenominator) };
+		uint24_t clipHeight{ static_cast<uint24_t>((edgeHeight * scaleNumerator) / scaleDenominator) };
+		if (clipWidth == 0)
+			clipWidth = 1;
+		if (clipHeight == 0)
+			clipHeight = 1;
+		const bool bClipToImageBounds{ edgeWidth < SUBIMAGE_DIMENSIONS || edgeHeight < SUBIMAGE_DIMENSIONS };
+		if (bClipToImageBounds) {
+			if (HDpicGFX::is16bppMode())
+				gfx16_SetClipRegion(subimgPxlPosX, subimgPxlPosY, clipWidth, clipHeight);
+			else
+				gfx_SetClipRegion(subimgPxlPosX, subimgPxlPosY, clipWidth, clipHeight);
+		}
+
 		//displays subimage
 		//if we are displaying an edge image, clip the subimage. Otherwise don't clip for extra speed.
 		//dbg_sprintf(dbgout, "\nsubImgX: %d\nsubImgY: %d\nsrcImg: %p", subimgPxlPosX, subimgPxlPosY, (void *)&srcImg);
 
 		uint8_t pixelsPerByte = 8 / curPicture.BPP;
-		uint24_t dataToRead = (SUBIMAGE_DIMENSIONS * SUBIMAGE_DIMENSIONS) / pixelsPerByte;
+		uint24_t dataToRead = ceilDiv(static_cast<int24_t>(srcWidth * srcHeight), static_cast<int24_t>(pixelsPerByte));
 		uint24_t out{ 0 };
 
 		/*dbg_sprintf(dbgout, "\n CHECK %d subimgPxlPosX < 0: %d < 0", subimgPxlPosX < 0, subimgPxlPosX);
 		dbg_sprintf(dbgout, "\n CHECK %d subimgPxlPosX + subimgScaledDim > LCD_WIDTH: %d > %d", subimgPxlPosX + subimgScaledDim > LCD_WIDTH, subimgPxlPosX + subimgScaledDim, LCD_WIDTH);
 		dbg_sprintf(dbgout, "\n CHECK %d subimgPxlPosY < 0: %d < 0", subimgPxlPosY < 0, subimgPxlPosY);
 		dbg_sprintf(dbgout, "\n CHECK %d subimgPxlPosY + subimgScaledDim > LCD_HEIGHT: %d > %d", subimgPxlPosY + subimgScaledDim > LCD_HEIGHT, subimgPxlPosY + subimgScaledDim, LCD_HEIGHT);*/
-		bool bClipPicture = subimgPxlPosX < 0 || subimgPxlPosX + subimgScaledDim > LCD_WIDTH || subimgPxlPosY < 0 || subimgPxlPosY + subimgScaledDim > LCD_HEIGHT;
+		bool bClipPicture = bClipToImageBounds || subimgPxlPosX < 0 || subimgPxlPosX + outputImg->width > LCD_WIDTH || subimgPxlPosY < 0 || subimgPxlPosY + outputImg->height > LCD_HEIGHT;
 
 		switch (curPicture.BPP) {
 		case 1:
@@ -902,6 +946,8 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 				(*tempImg)->data[out++] = (byte >> 1) & 0x01;
 				(*tempImg)->data[out++] = byte & 0x01;
 			}
+			(*tempImg)->width = srcWidth;
+			(*tempImg)->height = srcHeight;
 			HDpicGFX::scaleSprite(*tempImg, outputImg);
 			HDpicGFX::sprite(outputImg, subimgPxlPosX, subimgPxlPosY, bClipPicture);
 			break;
@@ -915,6 +961,8 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 				(*tempImg)->data[out++] = (byte >> 2) & 0x03;
 				(*tempImg)->data[out++] = byte & 0x03;
 			}
+			(*tempImg)->width = srcWidth;
+			(*tempImg)->height = srcHeight;
 			HDpicGFX::scaleSprite(*tempImg, outputImg);
 			HDpicGFX::sprite(outputImg, subimgPxlPosX, subimgPxlPosY, bClipPicture);
 			break;
@@ -926,6 +974,8 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 				(*tempImg)->data[out++] = (byte >> 4) & 0x0F;
 				(*tempImg)->data[out++] = byte & 0x0F;
 			}
+			(*tempImg)->width = srcWidth;
+			(*tempImg)->height = srcHeight;
 			HDpicGFX::scaleSprite(*tempImg, outputImg);
 			HDpicGFX::sprite(outputImg, subimgPxlPosX, subimgPxlPosY, bClipPicture);
 			break;
@@ -935,6 +985,13 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 			HDpicGFX::scaleSprite(*srcImg, outputImg);
 			HDpicGFX::sprite(outputImg, subimgPxlPosX, subimgPxlPosY, bClipPicture);
 			break;
+		}
+
+		if (bClipToImageBounds) {
+			if (HDpicGFX::is16bppMode())
+				gfx16_SetClipRegion(0, 0, LCD_WIDTH, LCD_HEIGHT);
+			else
+				gfx_SetClipRegion(0, 0, LCD_WIDTH, LCD_HEIGHT);
 		}
 
 		//cleans up
@@ -949,7 +1006,7 @@ uint8_t drawImage(uint24_t picName, uint24_t desiredWidthInPxl, uint24_t desired
 /* Rebuilds the database of images on the calculator */
 uint24_t findPictures()
 {
-	char *var_name, imgInfo[16];
+	char *var_name, imgInfo[32];
 	uint24_t imagesFound{ 0 };
 
 	//resets splash screen for new loading bar
@@ -1032,6 +1089,8 @@ uint24_t findPictures()
 		imgData.horizSubImages = charToInt(buffer[0]) * 100 + charToInt(buffer[1]) * 10 + charToInt(buffer[2]) + 1;
 		std::strncpy(buffer, charArrImgInfo + IMAGE_NAME_SIZE + ID_SIZE + HORIZ_VERT_SIZE, HORIZ_VERT_SIZE);
 		imgData.vertSubImages = charToInt(buffer[0]) * 100 + charToInt(buffer[1]) * 10 + charToInt(buffer[2]) + 1;
+		imgData.pixelWidth = static_cast<uint24_t>(imgData.horizSubImages) * SUBIMAGE_DIMENSIONS;
+		imgData.pixelHeight = static_cast<uint24_t>(imgData.vertSubImages) * SUBIMAGE_DIMENSIONS;
 
 		dbg_sprintf(dbgout, "\nPicture found:\n imgName: %.8s\n ID: %.2s\n subImgHoriz: %d\n subImgVert: %d\n ", imgData.imgName, imgData.ID, imgData.horizSubImages, imgData.vertSubImages);
 
@@ -1049,7 +1108,7 @@ uint24_t findPictures()
 		constexpr uint8_t HORIZ_VERT_SIZE{ 3 };
 		constexpr uint8_t PALETTE_NAME_SIZE{ 8 };
 		constexpr uint8_t BITS_PER_PIXEL_SIZE{ 2 };
-		constexpr uint8_t HEADER_SIZE{ 18 };
+		constexpr uint8_t HEADER_SIZE{ 26 };
 		constexpr uint8_t IMAGE_NAME_SIZE{ 8 };
 
 		loadingBar.increment();
@@ -1087,6 +1146,36 @@ uint24_t findPictures()
 		imgData.horizSubImages = charToInt(dimBuffer[0]) * 100 + charToInt(dimBuffer[1]) * 10 + charToInt(dimBuffer[2]) + 1;
 		std::strncpy(dimBuffer, charArrImgInfo + BITS_PER_PIXEL_SIZE + IMAGE_NAME_SIZE + ID_SIZE + HORIZ_VERT_SIZE, HORIZ_VERT_SIZE);
 		imgData.vertSubImages = charToInt(dimBuffer[0]) * 100 + charToInt(dimBuffer[1]) * 10 + charToInt(dimBuffer[2]) + 1;
+		imgData.pixelWidth = static_cast<uint24_t>(imgData.horizSubImages) * SUBIMAGE_DIMENSIONS;
+		imgData.pixelHeight = static_cast<uint24_t>(imgData.vertSubImages) * SUBIMAGE_DIMENSIONS;
+
+		// Optional pixel dimensions may be stored after the base header.
+		constexpr uint8_t BASE_HEADER_SIZE{ BITS_PER_PIXEL_SIZE + IMAGE_NAME_SIZE + ID_SIZE + (HORIZ_VERT_SIZE * 2) };
+		constexpr uint8_t PIXEL_DIM_SIZE{ 4 };
+		if (HEADER_SIZE >= BASE_HEADER_SIZE + (PIXEL_DIM_SIZE * 2)) {
+			bool bDigits{ true };
+			for (uint8_t i = 0; i < (PIXEL_DIM_SIZE * 2); i++) {
+				const char c{ charArrImgInfo[BASE_HEADER_SIZE + i] };
+				if (c < '0' || c > '9') {
+					bDigits = false;
+					break;
+				}
+			}
+			if (bDigits) {
+				uint24_t parsedWidth{ 0 };
+				uint24_t parsedHeight{ 0 };
+				for (uint8_t i = 0; i < PIXEL_DIM_SIZE; i++)
+					parsedWidth = (parsedWidth * 10) + static_cast<uint24_t>(charToInt(charArrImgInfo[BASE_HEADER_SIZE + i]));
+				for (uint8_t i = 0; i < PIXEL_DIM_SIZE; i++)
+					parsedHeight = (parsedHeight * 10) + static_cast<uint24_t>(charToInt(charArrImgInfo[BASE_HEADER_SIZE + PIXEL_DIM_SIZE + i]));
+
+				if (parsedWidth > 0 && parsedHeight > 0 &&
+					parsedWidth <= imgData.pixelWidth && parsedHeight <= imgData.pixelHeight) {
+					imgData.pixelWidth = parsedWidth;
+					imgData.pixelHeight = parsedHeight;
+				}
+			}
+		}
 
 		//convert the char BPP to a uint8_t
 		imgData.BPP = static_cast<uint8_t>(charToInt(BPPbuffer[0]) * 10 + charToInt(BPPbuffer[1]));

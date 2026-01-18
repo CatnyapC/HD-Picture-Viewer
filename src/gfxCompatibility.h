@@ -155,11 +155,6 @@ public:
 	static void scaleSprite(gfx_sprite_t *src, gfx_sprite_t *dst)
 	{
 		dbg_sprintf(dbgout, "\n Scaling... %d x %d to %d x %d", src->width, src->height, dst->width, dst->height);
-
-		if (dst->width != dst->height) {
-			dbg_sprintf(dbgout, "\n  ERR: Not square. Reverting to 80x80");
-			dst->width = 80; dst->height = 80;
-		}
 		if (HDpicGFX::is16bppMode())
 			gfx16_ScaleSprite(src, dst);
 		else
